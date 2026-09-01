@@ -78,9 +78,26 @@
 
         <div class="local-agent-status">
           <span class="status-dot"></span>
-          Local scanner connected
+
+          {% if demo_mode %}
+            Hosted demo connected
+          {% else %}
+            Local scanner connected
+          {% endif %}
         </div>
       </header>
+
+      {% if demo_mode %}
+        <aside class="demo-banner">
+          <strong>Hosted demonstration mode</strong>
+
+          <span>
+            This public version uses safe sample findings and does not
+            perform network scans. Clone and run PortProof locally for
+            authorised private-network assessments.
+          </span>
+        </aside>
+      {% endif %}
 
       <section class="view active" id="scannerView">
         <section class="scanner-layout">
@@ -525,7 +542,7 @@
   </div>
 
   <script
-    src="{{ url_for('static', filename='script.js') }}"
+    src="{{ url_for('static', filename='script.js') }}?v=4"
   ></script>
 </body>
 </html>

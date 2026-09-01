@@ -1113,3 +1113,34 @@ td code {
   font-weight: 400;
   line-height: 1.4;
 }
+
+/* Hosted demonstration notice */
+
+.demo-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding: 16px 18px;
+  border: 1px solid rgba(86, 207, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(86, 207, 255, 0.08);
+  color: var(--primary-text);
+}
+
+.demo-banner strong {
+  flex-shrink: 0;
+  color: #56cfff;
+}
+
+.demo-banner span {
+  color: var(--muted-text);
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .demo-banner {
+    flex-direction: column;
+    gap: 7px;
+  }
+}
