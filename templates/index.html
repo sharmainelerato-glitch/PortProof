@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="PortProof is a defensive local-network exposure scanner."
+  >
+
+  <title>PortProof | Local Network Exposure Scanner</title>
+
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='styles.css') }}"
+  >
+</head>
+
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="#" class="brand">
+        <span class="brand-mark">PP</span>
+
+        <span>
+          <strong>PortProof</strong>
+          <small>Exposure Scanner</small>
+        </span>
+      </a>
+
+      <nav aria-label="Main navigation">
+        <button
+          class="nav-item active"
+          data-view="scanner"
+          type="button"
+        >
+          <span>⌁</span>
+          Scanner
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="history"
+          type="button"
+        >
+          <span>◷</span>
+          Scan History
+        </button>
+      </nav>
+
+      <div class="safety-card">
+        <span class="safety-icon">✓</span>
+
+        <div>
+          <strong>Private targets only</strong>
+
+          <small>
+            Public IP ranges and networks larger than /24 are blocked.
+          </small>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Defensive network visibility</p>
+
+          <h1>
+            Know what is open before it becomes an entry point.
+          </h1>
+        </div>
+
+        <div class="local-agent-status">
+          <span class="status-dot"></span>
+          Local scanner connected
+        </div>
+      </header>
+
+      <section class="view active" id="scannerView">
+        <section class="scanner-layout">
+          <article class="scan-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Authorised assessment</p>
+                <h2>Start a network scan</h2>
+              </div>
+
+              <span class="local-badge">Local only</span>
+            </div>
+
+            <form id="scanForm">
+              <div class="form-field">
+                <label for="targetInput">
+                  Target IP address or private CIDR
+                </label>
+
+                <div class="input-with-action">
+                  <input
+                    type="text"
+                    id="targetInput"
+                    placeholder="Example: 192.168.1.10 or 192.168.1.0/24"
+                    required
+                  >
+
+                  <button
+                    type="button"
+                    class="text-button"
+                    id="useLocalIpButton"
+                  >
+                    Use my IP
+                  </button>
+                </div>
+
+                <small>
+                  Allowed: localhost, 10.0.0.0/8, 172.16.0.0/12,
+                  and 192.168.0.0/16.
+                </small>
+              </div>
+
+              <div class="two-column-grid">
+                <div class="form-field">
+                  <label for="profileSelect">
+                    Scan profile
+                  </label>
+
+                  <select id="profileSelect">
+                    <option value="common">
+                      Common exposure ports
+                    </option>
+
+                    <option value="extended">
+                      Ports 1–1024 (single host only)
+                    </option>
+
+                    <option value="custom">
+                      Custom ports
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="timeoutSelect">
+                    Connection timeout
+                  </label>
+
+                  <select id="timeoutSelect">
+                    <option value="0.2">
+                      Fast — 0.2 seconds
+                    </option>
+
+                    <option value="0.35" selected>
+                      Balanced — 0.35 seconds
+                    </option>
+
+                    <option value="0.75">
+                      Thorough — 0.75 seconds
+                    </option>
+
+                    <option value="1.5">
+                      Slow networks — 1.5 seconds
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div
+                class="form-field hidden"
+                id="customPortsField"
+              >
+                <label for="customPortsInput">
+                  Custom ports
+                </label>
+
+                <input
+                  type="text"
+                  id="customPortsInput"
+                  placeholder="Example: 22, 80, 443, 8000-8010"
+                >
+
+                <small>
+                  Enter comma-separated ports or ranges.
+                  Maximum: 128 ports.
+                </small>
+              </div>
+
+              <label class="authorisation-check">
+                <input
+                  type="checkbox"
+                  id="authorisedCheckbox"
+                >
+
+                <span>
+                  <strong>
+                    I confirm that I own or am authorised to scan
+                    this target.
+                  </strong>
+
+                  <small>
+                    Scanning systems without permission may violate
+                    laws, policies, or service agreements.
+                  </small>
+                </span>
+              </label>
+
+              <div
+                class="form-message hidden"
+                id="formMessage"
+              ></div>
+
+              <button
+                type="submit"
+                class="primary-button"
+                id="scanButton"
+              >
+                Start authorised scan
+              </button>
+            </form>
+          </article>
+
+          <aside class="device-card">
+            <p class="eyebrow">Local scanner</p>
+            <h2>Device information</h2>
+
+            <div class="device-details">
+              <div>
+                <span>Hostname</span>
+                <strong id="localHostname">
+                  Loading...
+                </strong>
+              </div>
+
+              <div>
+                <span>Local IPv4</span>
+                <strong id="localIp">
+                  Loading...
+                </strong>
+              </div>
+
+              <div>
+                <span>Maximum range</span>
+                <strong>/24 · 254 hosts</strong>
+              </div>
+
+              <div>
+                <span>Execution</span>
+                <strong>Local Python agent</strong>
+              </div>
+            </div>
+
+            <div class="privacy-note">
+              Scan requests remain on this device. PortProof does
+              not send target information to an external scanning
+              service.
+            </div>
+          </aside>
+        </section>
+
+        <section
+          class="progress-card hidden"
+          id="progressCard"
+        >
+          <div class="progress-heading">
+            <div>
+              <p class="eyebrow">Scan in progress</p>
+
+              <h2 id="progressTitle">
+                Checking authorised target
+              </h2>
+            </div>
+
+            <span id="elapsedTime">0s</span>
+          </div>
+
+          <div class="progress-track">
+            <span id="progressFill"></span>
+          </div>
+
+          <p id="progressMessage">
+            Validating target and preparing connection checks...
+          </p>
+        </section>
+
+        <section
+          class="results-section hidden"
+          id="resultsSection"
+        >
+          <div class="results-header">
+            <div>
+              <p class="eyebrow">Exposure assessment</p>
+              <h2>Scan results</h2>
+              <p id="scanSummary"></p>
+            </div>
+
+            <div class="export-actions">
+              <button
+                class="secondary-button"
+                id="exportJsonButton"
+                type="button"
+              >
+                Export JSON
+              </button>
+
+              <button
+                class="secondary-button"
+                id="exportCsvButton"
+                type="button"
+              >
+                Export CSV
+              </button>
+
+              <button
+                class="secondary-button"
+                id="saveBaselineBtn"
+                type="button"
+              >
+                Save as baseline
+              </button>
+
+              <button
+  class="secondary-button"
+  id="printReportButton"
+  type="button"
+>
+  Generate report
+</button>
+
+            </div>
+          </div>
+
+          <section class="metrics-grid">
+            <article class="metric-card">
+              <span>Hosts checked</span>
+              <strong id="hostsChecked">0</strong>
+              <small>Authorised target addresses</small>
+            </article>
+
+            <article class="metric-card">
+              <span>Hosts discovered</span>
+              <strong id="hostsDiscovered">0</strong>
+              <small>Hosts with reachable ports</small>
+            </article>
+
+            <article class="metric-card">
+              <span>Open ports</span>
+              <strong id="openPortCount">0</strong>
+              <small>TCP services requiring review</small>
+            </article>
+
+            <article class="metric-card danger-metric">
+              <span>High exposure</span>
+              <strong id="highExposureCount">0</strong>
+              <small>Priority findings</small>
+            </article>
+          </section>
+
+          <section
+            id="baselineComparison"
+            class="comparison-panel"
+            hidden
+          >
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Exposure monitoring</p>
+                <h3>Baseline comparison</h3>
+              </div>
+
+              <button
+                id="clearBaselineBtn"
+                class="secondary-button"
+                type="button"
+              >
+                Clear baseline
+              </button>
+            </div>
+
+            <p
+              id="baselineMetadata"
+              class="comparison-metadata"
+            ></p>
+
+            <div class="comparison-grid">
+              <article class="comparison-card new-exposure">
+                <span>New exposures</span>
+                <strong id="newExposureCount">0</strong>
+
+                <small>
+                  Ports absent from the saved baseline
+                </small>
+              </article>
+
+              <article class="comparison-card resolved-exposure">
+                <span>Resolved exposures</span>
+                <strong id="resolvedExposureCount">0</strong>
+
+                <small>
+                  Previously open ports no longer detected
+                </small>
+              </article>
+
+              <article class="comparison-card unchanged-exposure">
+                <span>Unchanged</span>
+                <strong id="unchangedExposureCount">0</strong>
+
+                <small>
+                  Open services present in both scans
+                </small>
+              </article>
+            </div>
+
+            <div
+              id="comparisonDetails"
+              class="comparison-details"
+            ></div>
+          </section>
+
+          <article class="findings-card">
+            <div class="findings-toolbar">
+              <div>
+                <p class="eyebrow">Observed services</p>
+                <h3>Exposure findings</h3>
+              </div>
+
+              <div class="toolbar-controls">
+                <input
+                  type="search"
+                  id="findingSearch"
+                  placeholder="Search findings..."
+                >
+
+                <select id="severityFilter">
+                  <option value="all">
+                    All severities
+                  </option>
+
+                  <option value="high">
+                    High
+                  </option>
+
+                  <option value="medium">
+                    Medium
+                  </option>
+
+                  <option value="low">
+                    Low
+                  </option>
+
+                  <option value="informational">
+                    Informational
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+  <th>Host</th>
+  <th>Port</th>
+  <th>Likely service</th>
+  <th>Severity</th>
+  <th>Response</th>
+  <th>Risk context</th>
+  <th>Recommended action</th>
+  <th>Analyst decision</th>
+  <th>Analyst note</th>
+ </tr>
+                </thead>
+
+                <tbody id="findingsTableBody"></tbody>
+              </table>
+            </div>
+
+            <div
+              class="empty-findings hidden"
+              id="emptyFindings"
+            >
+              No findings match the current search and filter.
+            </div>
+          </article>
+
+          <div class="evidence-limit">
+            <strong>Evidence limitation:</strong>
+
+            An open port confirms that a TCP connection was
+            accepted. It does not independently prove that the
+            service is vulnerable, misconfigured, or malicious.
+          </div>
+        </section>
+      </section>
+
+      <section class="view" id="historyView">
+        <header class="history-header">
+          <div>
+            <p class="eyebrow">Local scan records</p>
+            <h2>Scan History</h2>
+
+            <p>
+              Previous summaries are stored in this browser using
+              Local Storage.
+            </p>
+          </div>
+
+          <button
+            class="secondary-button"
+            id="clearHistoryButton"
+            type="button"
+          >
+            Clear history
+          </button>
+        </header>
+
+        <div
+          class="history-list"
+          id="historyList"
+        ></div>
+      </section>
+    </main>
+  </div>
+
+  <script
+    src="{{ url_for('static', filename='script.js') }}"
+  ></script>
+</body>
+</html>
