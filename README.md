@@ -6,6 +6,15 @@ It combines a lightweight Python and Flask scanning engine with a responsive fro
 
 > PortProof is designed only for systems the operator owns or has explicit permission to assess.
 
+## Live demo
+
+**Hosted demonstration:**  
+https://portproof-demo.onrender.com
+
+The public deployment runs in a clearly labelled safe demo mode. It uses sample findings and does not perform network scans.
+
+The repository’s local mode performs real authorised TCP connection checks against permitted private networks.
+
 ![PortProof scanner dashboard](screenshots/scanner_dashboard.png)
 
 ## Why I built it
@@ -37,12 +46,39 @@ I built PortProof to practise the complete defensive assessment workflow:
 - Provides defensive remediation guidance
 - Supports severity filtering and finding search
 - Saves scan summaries in browser Local Storage
-- Stores analyst decisions and notes
+- Stores analyst decisions and investigation notes
 - Saves and compares an exposure baseline
 - Detects new, resolved and unchanged exposures
 - Exports findings as JSON and CSV
 - Generates a printable network-exposure assessment report
 - Uses a responsive HTML, CSS and vanilla JavaScript interface
+- Supports separate real local and safe hosted-demo modes
+
+## Operating modes
+
+PortProof supports two distinct operating modes.
+
+### Local mode
+
+Local mode performs real TCP connection checks against authorised private IPv4 targets.
+
+It is enabled by default when PortProof is started with:
+
+```powershell
+py app.py
+```
+
+### Hosted demo mode
+
+Hosted demo mode uses fixed sample findings and does not perform network scans.
+
+This allows recruiters and reviewers to test the complete interface without exposing a public scanning capability.
+
+Hosted demo mode is enabled using:
+
+```text
+PORTPROOF_DEMO_MODE=true
+```
 
 ## Baseline monitoring
 
@@ -72,6 +108,20 @@ Analyst decisions and notes are stored locally in the browser and remain availab
 
 ![PortProof analyst assessment](screenshots/analyst_assessment.png)
 
+## Risk and remediation guidance
+
+PortProof separates risk context from recommended defensive action.
+
+For each recognised port, it provides:
+
+- A likely service name
+- A severity classification
+- An explanation of the exposure
+- A recommended defensive action
+- A service-confidence limitation
+
+Service names are inferred from standard TCP port assignments and are not presented as confirmed application identification.
+
 ## Evidence limitations
 
 PortProof performs TCP connection checks. An open port confirms that a connection was accepted, but it does not independently prove:
@@ -83,7 +133,9 @@ PortProof performs TCP connection checks. An open port confirms that a connectio
 - Successful exploitation
 - Malicious activity
 
-Likely services are inferred from standard port assignments and require further validation. Severity represents exposure context and prioritisation, not confirmed compromise.
+Likely services are inferred from standard port assignments and require further validation.
+
+Severity represents exposure context and prioritisation, not confirmed compromise.
 
 ## Safety controls
 
@@ -96,9 +148,10 @@ PortProof contains deliberate technical restrictions:
 - Extended scans are restricted to a single host
 - Custom scans are limited to 128 ports
 - Connection timeouts are bounded
-- The application binds to `127.0.0.1`
+- Local mode binds to `127.0.0.1`
 - The interface requires authorisation confirmation
 - Target information is not sent to an external scanning service
+- Hosted mode returns fixed sample data instead of executing scans
 
 These safeguards support defensive lab use but do not replace the operator's legal and ethical responsibility.
 
@@ -120,10 +173,18 @@ These safeguards support defensive lab use but do not replace the operator's leg
 
 - Python 3
 - Flask
+- Gunicorn
 - Python `socket` module
 - `ipaddress` validation
 - `ThreadPoolExecutor`
 - Dataclasses
+
+### Deployment
+
+- Render Web Service
+- Environment-controlled demo mode
+- GitHub source control
+- Gunicorn production server
 
 ## Project structure
 
@@ -170,7 +231,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install the dependency
+### 3. Install the dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -198,11 +259,35 @@ Visit:
 http://127.0.0.1:5050
 ```
 
+## Testing hosted demo mode locally
+
+Windows PowerShell:
+
+```powershell
+$env:PORTPROOF_DEMO_MODE="true"
+py app.py
+```
+
+To return to real local mode:
+
+```powershell
+Remove-Item Env:PORTPROOF_DEMO_MODE
+py app.py
+```
+
+macOS or Linux:
+
+```bash
+PORTPROOF_DEMO_MODE=true python3 app.py
+```
+
 ## Example authorised assessment
 
 A controlled assessment of a private local target identified open services associated with Microsoft RPC, NetBIOS, SMB and PostgreSQL.
 
-PortProof treated the service names as port-based inferences, prioritised the exposure for review and provided defensive recommendations. It did not claim that the device was vulnerable or compromised.
+PortProof treated the service names as port-based inferences, prioritised the exposure for review and provided defensive recommendations.
+
+It did not claim that the device was vulnerable or compromised.
 
 ## Reporting
 
@@ -231,7 +316,7 @@ The report includes:
 ### Cybersecurity
 
 - Network exposure assessment
-- TCP port scanning fundamentals
+- TCP port-scanning fundamentals
 - Attack-surface awareness
 - Defensive risk prioritisation
 - Evidence-based security reporting
@@ -240,28 +325,47 @@ The report includes:
 - Secure scope validation
 - Ethical testing controls
 
-### Software development
+### Frontend development
 
-- Responsive frontend development
 - Semantic HTML
-- CSS layouts and media queries
-- Vanilla JavaScript state management
+- Responsive CSS
+- CSS Grid and Flexbox
+- Media queries
+- Vanilla JavaScript
+- Dynamic DOM rendering
+- Client-side state management
 - Local Storage persistence
-- Dynamic table rendering
 - Search and filtering
+- Accessible form controls
 - Fetch API integration
-- Flask API development
-- Python socket programming
-- Input validation
 - JSON and CSV exports
 - Printable report generation
 
-## Deployment note
+### Backend development
 
-PortProof is intentionally designed to run locally because a publicly hosted web server cannot directly inspect a user's private home or lab network.
+- Flask API development
+- Python socket programming
+- IPv4 and CIDR validation
+- Concurrent connection checks
+- Environment-based configuration
+- Error handling
+- Security headers
+- Production deployment with Gunicorn
 
-The repository and screenshots provide public portfolio evidence, while the scanner itself runs on the authorised user's device.
+## Deployment
+
+The public portfolio demonstration is deployed on Render:
+
+https://portproof-demo.onrender.com
+
+The hosted service runs only in safe demo mode. It returns fixed sample results and cannot be used to scan public, private or third-party networks.
+
+Real authorised assessments remain available through local mode.
+
+Free Render services may take a short time to wake after a period of inactivity.
 
 ## Responsible use
 
-Only scan systems and networks that you own or have explicit permission to assess. PortProof must not be used to target public systems or third-party networks without authorisation.v
+Only scan systems and networks that you own or have explicit permission to assess.
+
+PortProof must not be used to target public systems or third-party networks without authorisation.
